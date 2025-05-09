@@ -10,12 +10,12 @@ import os
 
 
 class TestBaseModel(unittest.TestCase):
-    """Test base model"""
+    """ Test base model"""
 
     def __init__(self, *args, **kwargs):
         """ """
         super().__init__(*args, **kwargs)
-        self.name = "BaseModel"
+        self.name = 'BaseModel'
         self.value = BaseModel
 
     def setUp(self):
@@ -24,7 +24,7 @@ class TestBaseModel(unittest.TestCase):
 
     def tearDown(self):
         try:
-            os.remove("file.json")
+            os.remove('file.json')
         except:
             pass
 
@@ -76,7 +76,5 @@ class TestBaseModel(unittest.TestCase):
         self.assertEqual(type(new.updated_at), datetime.datetime)
         n = new.to_dict()
         new = BaseModel(**n)
-        self.assertAlmostEqual(
-            new.created_at.timestamp(), new.updated_at.timestamp(), delta=1
-        )
-
+        self.assertAlmostEqual(new.created_at.timestamp(),
+                               new.updated_at.timestamp(), delta=1)

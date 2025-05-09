@@ -7,7 +7,7 @@ from models.city import City
 
 
 class TestCity(TestBaseModel):
-    """Test for city"""
+    """ Test for city"""
 
     def __init__(self, *args, **kwargs):
         """ """

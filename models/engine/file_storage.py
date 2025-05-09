@@ -1,69 +1,65 @@
+
 #!/usr/bin/python3
-"""This module defines a class to manage file storage for hbnb clone"""
+"""
+Module for FileStorage class that handles object serialization and deserialization
+"""
 import json
+import os
+from datetime import datetime
 
 
 class FileStorage:
-    """This class manages storage of hbnb models in JSON format"""
-    __file_path = 'file.json'
+    """
+    FileStorage class for serializing instances to JSON file
+    and deserializing JSON file to instances
+    """
+    # Path to the JSON file
+    __file_path = "file.json"
+    # Dictionary that will store all objects by <class name>.id
     __objects = {}
 
-    def all(self, cls=None):
-        """Returns a dictionary of models currently in storage"""
-        if cls is None:
-            return self.__objects
-        else:
-            filtered_obj = {}
-            for key, value in self.__objects.items():
-                if type(value) == cls:
-                    filtered_obj[key] = value
-            return filtered_obj
+    def all(self):
+        """Returns the dictionary __objects"""
+        return self.__objects
 
     def new(self, obj):
-        """Adds new object to storage dictionary"""
-        self.all().update({obj.to_dict()['__class__'] + '.' + obj.id: obj})
-
-    def delete(self, obj=None):
-        """Deletes obj from objects"""
-        if obj is not None:
-            key = key = obj.__class__.__name__ + "." + obj.id
-            if key in self.__objects:
-                del self.__objects[key]
-                self.save()
+        """Sets in __objects the obj with key <obj class name>.id"""
+        key = "{}.{}".format(obj.__class__.__name__, obj.id)
+        self.__objects[key] = obj
 
     def save(self):
-        """Saves storage dictionary to file"""
-        with open(self.__file_path, 'w') as f:
-            temp = {}
-            temp.update(FileStorage.__objects)
-            for key, val in temp.items():
-                temp[key] = val.to_dict()
-            json.dump(temp, f)
+        """Serializes __objects to the JSON file (path: __file_path)"""
+        serialized = {}
+        for key, obj in self.__objects.items():
+            serialized[key] = obj.to_dict()
+        
+        with open(self.__file_path, 'w', encoding='utf-8') as file:
+            json.dump(serialized, file)
 
     def reload(self):
-        """Loads storage dictionary from file"""
+        """
+        Deserializes the JSON file to __objects
+        Only if the JSON file exists; otherwise, do nothing.
+        No exception should be raised if the file doesn't exist.
+        """
+        # Import here to avoid circular import
         from models.base_model import BaseModel
-        from models.user import User
-        from models.place import Place
-        from models.state import State
-        from models.city import City
-        from models.amenity import Amenity
-        from models.review import Review
-
+        
+        # Dictionary of supported classes
         classes = {
-            'BaseModel': BaseModel, 'User': User, 'Place': Place,
-            'State': State, 'City': City, 'Amenity': Amenity,
-            'Review': Review
+            'BaseModel': BaseModel
         }
-        try:
-            temp = {}
-            with open(FileStorage.__file_path, 'r') as f:
-                temp = json.load(f)
-                for key, val in temp.items():
-                    self.all()[key] = classes[val['__class__']](**val)
-        except FileNotFoundError:
-            pass
-
-    def close(self):
-        """Deserialize the JSON file to objects"""
-        self.reload()
+        
+        # Check if file exists
+        if os.path.isfile(self.__file_path):
+            try:
+                with open(self.__file_path, 'r', encoding='utf-8') as file:
+                    data = json.load(file)
+                    for key, value in data.items():
+                        class_name = value["__class__"]
+                        if class_name in classes:
+                            # Recreate the instance using the dictionary
+                            self.__objects[key] = classes[class_name](**value)
+            except Exception:
+                # If any error occurs, do nothing as per requirements
+                pass
